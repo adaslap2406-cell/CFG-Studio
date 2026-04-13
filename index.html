@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CFG Simplifier — Grammar Lab</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Simplify Any CFG Instantly</h1>
+            <p class="subtitle">Paste your grammar, hit Simplify, and watch every transformation unfold — useless symbols, null productions, and unit rules removed step by step.</p>
+            
+            <div class="features">
+                <span class="feature-tag">Useless symbol removal</span>
+                <span class="feature-tag">Null production elimination</span>
+                <span class="feature-tag">Unit production removal</span>
+                <span class="feature-tag">Step-by-step output</span>
+            </div>
+        </header>
+
+        <main class="workspace">
+            <section class="input-panel">
+                <div class="panel-header">
+                    <h2>Grammar Input</h2>
+                    <button id="load-example" class="btn-secondary">Load example</button>
+                </div>
+                
+                <textarea id="grammar-input" placeholder="Enter your grammar here...
+Example:
+S → AB | a
+A → aA | ε
+B → bB | b"></textarea>
+                
+                <div class="grammar-stats">
+                    <div class="stat">
+                        <span class="stat-value" id="nonterminal-count">—</span>
+                        <span class="stat-label">Non-terminals—uppercase symbols</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value" id="production-count">—</span>
+                        <span class="stat-label">Productions—total rules</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value" id="start-symbol">—</span>
+                        <span class="stat-label">Start symbol—first non-terminal</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value" id="has-epsilon">—</span>
+                        <span class="stat-label">Has ε rules—null productions</span>
+                    </div>
+                </div>
+
+                <button id="simplify-btn" class="btn-primary">Simplify</button>
+
+                <div class="history-section">
+                    <h3>History</h3>
+                    <div id="history-list">
+                        <p class="empty-state">No grammars simplified yet</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="output-panel">
+                <div class="panel-header">
+                    <h2>Simplification Steps</h2>
+                </div>
+                
+                <div id="steps-container" class="steps-container">
+                    <div class="empty-state">
+                        <span class="lambda-icon">λ</span>
+                        <p>Enter a grammar and click Simplify</p>
+                        <p class="hint">Results appear here step by step</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <section class="reference-section">
+            <h2>Quick Reference</h2>
+            <table class="reference-table">
+                <thead>
+                    <tr>
+                        <th>Concept</th>
+                        <th>Syntax</th>
+                        <th>Meaning</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Non-terminal</td>
+                        <td><code>S, A, B</code></td>
+                        <td>Uppercase — can be expanded</td>
+                    </tr>
+                    <tr>
+                        <td>Terminal</td>
+                        <td><code>a, b, c</code></td>
+                        <td>Lowercase — final output symbols</td>
+                    </tr>
+                    <tr>
+                        <td>Null production</td>
+                        <td><code>A → ε</code></td>
+                        <td>A can become the empty string</td>
+                    </tr>
+                    <tr>
+                        <td>Unit production</td>
+                        <td><code>A → B</code></td>
+                        <td>A derives a single non-terminal</td>
+                    </tr>
+                    <tr>
+                        <td>Start symbol</td>
+                        <td><code>S (first)</code></td>
+                        <td>Where every derivation begins</td>
+                    </tr>
+                    <tr>
+                        <td>Separator</td>
+                        <td><code>|</code></td>
+                        <td>Separates alternatives on right side</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section class="theory-section">
+            <h2>Theory behind the steps</h2>
+            <div class="theory-grid">
+                <div class="theory-card">
+                    <span class="theory-icon">🔍</span>
+                    <h3>Generating symbols</h3>
+                    <p>A symbol is generating if it can derive at least one string of terminal characters. Found using fixed-point iteration — start with terminals, spread to non-terminals whose every rule resolves.</p>
+                </div>
+                <div class="theory-card">
+                    <span class="theory-icon">🌐</span>
+                    <h3>Reachable symbols</h3>
+                    <p>A symbol is reachable if it can be reached from the start symbol S by following production rules. Found by BFS/DFS from S through all rules. Unreachable symbols are dead code.</p>
+                </div>
+                <div class="theory-card">
+                    <span class="theory-icon">∅</span>
+                    <h3>Nullable symbols</h3>
+                    <p>A symbol A is nullable if A ⇒* ε. Found by checking for direct ε rules, then propagating: if all symbols in a rule are nullable, the LHS is too.</p>
+                </div>
+                <div class="theory-card">
+                    <span class="theory-icon">⛓️</span>
+                    <h3>Unit pairs</h3>
+                    <p>A unit pair (A, B) means A ⇒* B through only unit productions. Computing the transitive closure lets us replace all chains A → B → C → d with A → d directly.</p>
+                </div>
+                <div class="theory-card">
+                    <span class="theory-icon">✓</span>
+                    <h3>Why simplify?</h3>
+                    <p>Simplified grammars are required for most parsing algorithms (CYK, Earley). Removing useless symbols reduces state space. Removing ε and unit rules makes analysis easier.</p>
+                </div>
+                <div class="theory-card">
+                    <span class="theory-icon">≡</span>
+                    <h3>Language equivalence</h3>
+                    <p>Every step preserves the language L(G). The simplified grammar generates exactly the same strings as the original — except possibly ε if S was nullable and not the start.</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
